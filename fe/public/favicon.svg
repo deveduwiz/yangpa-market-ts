@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+     stroke="#18181b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      :root { stroke: #fafafa; }
+    }
+  </style>
+  <path d="M12 6.4c.2-1.8 1.5-3.2 3.4-3.6" />
+  <path d="M12 6.4c-.5-1.5-1.8-2.5-3.4-2.7" />
+  <path d="M12 6.2c4.9 3 6.6 6.9 4.9 10.1-1.1 2-3 2.9-4.9 2.9s-3.8-.9-4.9-2.9C5.4 13.1 7.1 9.2 12 6.2Z" />
+  <path d="M12 9.9c2 1.9 2.7 4.2 1.8 6-.4.8-1.1 1.2-1.8 1.2s-1.4-.4-1.8-1.2c-.9-1.8-.2-4.1 1.8-6Z" />
+</svg>
