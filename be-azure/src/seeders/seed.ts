@@ -4,12 +4,13 @@ import { fileURLToPath } from 'url';
 import bcrypt from 'bcrypt';
 import { sequelize, User, Sale } from '../models/index.js';
 import config from '../config/config.js';
+import { uploadToAzure } from '../services/azure-blob.service.js';
+import mime from 'mime-types';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const SAMPLE_IMAGE_DIR = path.join(__dirname, '../../../sample-image');
-const FILES_DIR = path.join(__dirname, '../../files');
 
 interface UserData {
   email: string;
@@ -125,18 +126,15 @@ const products: ProductData[] = [
   },
 ];
 
-const copyImages = (): void => {
-  if (!fs.existsSync(FILES_DIR)) {
-    fs.mkdirSync(FILES_DIR, { recursive: true });
-  }
-
+const uploadImagesToAzure = async (): Promise<void> => {
   const files = fs.readdirSync(SAMPLE_IMAGE_DIR);
   for (const file of files) {
     if (file.startsWith('.')) continue;
-    const src = path.join(SAMPLE_IMAGE_DIR, file);
-    const dest = path.join(FILES_DIR, file);
-    fs.copyFileSync(src, dest);
-    console.log(`Copied: ${file}`);
+    const filePath = path.join(SAMPLE_IMAGE_DIR, file);
+    const buffer = fs.readFileSync(filePath);
+    const contentType = mime.lookup(file) || 'application/octet-stream';
+    await uploadToAzure(buffer, file, contentType);
+    console.log(`Uploaded to Azure: ${file}`);
   }
 };
 
@@ -145,8 +143,8 @@ const seed = async (): Promise<void> => {
     await sequelize.sync({ force: true });
     console.log('DB 초기화 완료');
 
-    copyImages();
-    console.log('이미지 복사 완료');
+    await uploadImagesToAzure();
+    console.log('이미지 Azure 업로드 완료');
 
     for (const user of users) {
       const hashedPassword = await bcrypt.hash(

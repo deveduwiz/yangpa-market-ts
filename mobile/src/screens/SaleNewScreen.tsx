@@ -98,9 +98,16 @@ export default function SaleNewScreen({ navigation }: RootScreenProps<'SaleNew'>
         price,
         photo,
       });
-      // 모달을 닫는다. 홈은 포커스될 때 다시 불러오므로
-      // 방금 올린 상품이 목록 맨 위에 바로 보인다.
-      navigation.goBack();
+      // 모달을 닫고 홈 목록을 새로고침한다
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Tabs',
+            params: { screen: 'Home', params: { refresh: Date.now() } },
+          },
+        ],
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '등록에 실패했습니다.');
     } finally {

@@ -4,7 +4,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 /** 하단 탭 — 홈 / 찜 / 등록 / 마이 */
 export type TabParamList = {
-  Home: undefined;
+  Home: { refresh?: number } | undefined;
   Favorites: undefined;
   /** 실제로 열리지 않는 자리표시자. tabPress 를 가로채 SaleNew 모달을 띄운다. */
   NewPlaceholder: undefined;

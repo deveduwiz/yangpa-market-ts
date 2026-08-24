@@ -19,7 +19,6 @@ import SearchBar from '../components/SearchBar';
 import { RowSkeleton, TileSkeleton } from '../components/Skeleton';
 import ViewToggle from '../components/ViewToggle';
 import { SearchIcon } from '../components/icons';
-import { useRefreshOnFocus } from '../hooks/useRefreshOnFocus';
 import { useSaleList } from '../hooks/useSaleList';
 import type { TabScreenProps } from '../navigation';
 import { getViewMode, setViewMode, type ViewMode } from '../storage';
@@ -30,7 +29,7 @@ const GUTTER = 16;
 const GAP = 12;
 const SEARCH_DELAY = 300;
 
-export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
+export default function HomeScreen({ navigation, route }: TabScreenProps<'Home'>) {
   const c = useColors();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -49,13 +48,13 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
     void setViewMode(next);
   };
 
+  // 상품 등록 후 돌아올 때 refresh 파라미터가 바뀌면 새로고침
+  const refreshKey = route.params?.refresh;
+
   const list = useSaleList(
     ({ page, size, signal }) => api.listSales({ page, size, query: query || undefined, signal }),
-    [query],
+    [query, refreshKey],
   );
-
-  // 등록 모달에서 돌아오거나 다른 탭에서 찜을 바꾸고 오면 최신이어야 한다
-  useRefreshOnFocus(list.refresh);
 
   // flex:1 을 쓰면 마지막 줄에 타일이 하나만 남았을 때 화면 전체로 늘어난다
   const tileWidth = (width - GUTTER * 2 - GAP) / 2;
@@ -94,6 +93,11 @@ export default function HomeScreen({ navigation }: TabScreenProps<'Home'>) {
         keyExtractor={(item) => String(item.id)}
         numColumns={isCard ? 2 : 1}
         columnWrapperStyle={isCard ? styles.column : undefined}
+        // 데이터 변경 시 스크롤 위치 유지
+        maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+        overScrollMode="never"
+        initialNumToRender={10}
+        removeClippedSubviews={false}
         renderItem={({ item }) =>
           isCard ? (
             <SaleTile
