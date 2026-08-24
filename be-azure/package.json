@@ -4,6 +4,9 @@
   "description": "양파마켓 백엔드",
   "type": "module",
   "main": "dist/app.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
