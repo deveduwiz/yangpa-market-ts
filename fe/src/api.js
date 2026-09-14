@@ -1,5 +1,10 @@
 // be의 라우터와 1:1로 대응하는 얇은 fetch 래퍼.
-// Vite dev 서버가 /members, /sales, /image 를 localhost:3000 으로 프록시한다.
+// 백엔드 호스트는 .env 의 VITE_API_BASE_URL 로 관리한다.
+// 비워두면 상대경로로 요청하고, dev에서는 vite 프록시(VITE_PROXY_TARGET)가 받아준다.
+
+// 끝의 / 는 제거해서 `${BASE}/sales` 처럼 항상 한 번만 붙게 한다.
+const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
+const apiUrl = (path) => `${API_BASE}${path}`;
 
 const TOKEN_KEY = 'yangpa.token';
 
@@ -34,7 +39,7 @@ async function request(path, { method = 'GET', body, auth = false, signal } = {}
   const isFormData = body instanceof FormData;
   if (body && !isFormData) headers['Content-Type'] = 'application/json';
 
-  const res = await fetch(path, {
+  const res = await fetch(apiUrl(path), {
     method,
     headers,
     body: isFormData ? body : body ? JSON.stringify(body) : undefined,
@@ -112,4 +117,4 @@ export const api = {
 };
 
 export const imageUrl = (filename) =>
-  filename ? `/image/${encodeURIComponent(filename)}` : '';
+  filename ? apiUrl(`/image/${encodeURIComponent(filename)}`) : '';
