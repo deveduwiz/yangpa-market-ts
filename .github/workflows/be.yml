@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - yangpa-be
 
 on:
@@ -9,15 +6,14 @@ on:
       - main
     paths:
       - 'be-azure/**'
-      - '.github/workflows/be.yml'
-
+      - '.github/workflows/main_yangpa-be.yml'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     defaults:
       run:
@@ -29,12 +25,13 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '24.x'
 
-      - name: npm install and build
+      - name: npm install, build, and test
         run: |
           npm install
-          npm run build
+          npm run build --if-present
+          npm run test --if-present
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -59,4 +56,4 @@ jobs:
           app-name: 'yangpa-be'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6D499553B55843DCB76B8BD7F2FE9D9D }}
+          publish-profile: ${{ secrets.YANGPA_BE }}
