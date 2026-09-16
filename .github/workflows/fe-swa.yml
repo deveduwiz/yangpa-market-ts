@@ -39,7 +39,7 @@ jobs:
       - name: Build
         working-directory: fe
         env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+          VITE_API_BASE_URL: ${{ secrets.YP_BE }}
         run: |
           npm ci
           npm run build
@@ -50,7 +50,5 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_JOLLY_SKY_065E76F00 }}
           action: upload
           app_location: 'fe/dist'
-          # 이미 빌드했으므로 Oryx 를 건너뛴다.
-          # output_location 을 비워두지 않으면 액션이 fe/dist 아래에서 또 하위 폴더를 찾는다.
           skip_app_build: true
           output_location: ''
