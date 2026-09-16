@@ -39,7 +39,7 @@ jobs:
       - name: Build
         working-directory: fe
         env:
-          VITE_API_BASE_URL: ${{ secrets.YP_BE }}
+          VITE_API_BASE_URL: ${{ secrets.API_BASE_URL }}
         run: |
           npm ci
           npm run build
