@@ -5,7 +5,7 @@
 // 끝의 / 는 제거해서 `${BASE}/sales` 처럼 항상 한 번만 붙게 한다.
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
 const apiUrl = (path) => `${API_BASE}${path}`;
-
+console.log(apiUrl);
 const TOKEN_KEY = 'yangpa.token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
@@ -27,7 +27,10 @@ export const setUnauthorizedHandler = (fn) => {
   onUnauthorized = fn;
 };
 
-async function request(path, { method = 'GET', body, auth = false, signal } = {}) {
+async function request(
+  path,
+  { method = 'GET', body, auth = false, signal } = {},
+) {
   const headers = {};
   if (auth) {
     const token = getToken();
@@ -58,7 +61,10 @@ async function request(path, { method = 'GET', body, auth = false, signal } = {}
     if (auth && (res.status === 401 || res.status === 403)) {
       onUnauthorized?.();
     }
-    throw new ApiError(data?.message ?? `요청 실패 (${res.status})`, res.status);
+    throw new ApiError(
+      data?.message ?? `요청 실패 (${res.status})`,
+      res.status,
+    );
   }
   return data;
 }
@@ -105,8 +111,7 @@ export const api = {
     return request('/sales', { method: 'POST', body: form, auth: true });
   },
 
-  deleteSale: (id) =>
-    request(`/sales/${id}`, { method: 'DELETE', auth: true }),
+  deleteSale: (id) => request(`/sales/${id}`, { method: 'DELETE', auth: true }),
 
   /** 찜 토글 */
   setFavorite: (id, next) =>
