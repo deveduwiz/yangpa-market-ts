@@ -1,0 +1,136 @@
+# fe(Vite React) → Azure Static Web Apps 배포
+#
+# ⚠️ 기존 .github/workflows/fe.yml 도 fe/** push 에 반응합니다.
+#    중복 배포를 막으려고 이 워크플로는 수동 실행 전용으로 두었습니다.
+#    이쪽으로 굳히기로 하면 아래 push / pull_request 블록의 주석을 풀고
+#    fe.yml 은 삭제하거나 비활성화하세요.
+#
+# 필요한 Secret:
+#   AZURE_STATIC_WEB_APPS_API_TOKEN  — Azure 포털 > Static Web App > 배포 토큰 관리
+# 선택 Variable:
+#   VITE_API_BASE_URL                — 비우면 fe/.env.production 값을 사용
+#
+# App Service 와 다른 점:
+#   - 웹 서버를 직접 띄우지 않는다. dist 를 올리면 CDN 에서 서빙된다.
+#   - SPA fallback 은 staticwebapp.config.json 의 navigationFallback 이 담당한다.
+#   - PR 마다 미리보기 환경이 자동 생성되고, PR 이 닫히면 정리된다.
+
+name: Deploy fe to Azure Static Web Apps
+
+on:
+  workflow_dispatch:
+
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'fe/**'
+  #     - '.github/workflows/fe-swa.yml'
+  #
+  # pull_request:
+  #   types: [opened, synchronize, reopened, closed]
+  #   branches: [main]
+  #   paths:
+  #     - 'fe/**'
+  #     - '.github/workflows/fe-swa.yml'
+
+env:
+  NODE_VERSION: '20.x'
+
+concurrency:
+  group: fe-swa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_and_deploy:
+    # PR 이 닫혔을 때는 배포하지 않고 아래 close 잡만 돈다
+    if: github.event_name != 'pull_request' || github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # PR 에 미리보기 URL 코멘트를 달기 위해 필요
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: fe/package-lock.json
+
+      # VITE_* 는 빌드 시점에 번들에 인라인된다. SWA 의 애플리케이션 설정은
+      # 백엔드(API) 용이라 프론트 번들에는 반영되지 않으므로 여기서 주입한다.
+      - name: Override API base URL (optional)
+        if: vars.VITE_API_BASE_URL != ''
+        working-directory: fe
+        run: echo "VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}" > .env.production.local
+
+      # Oryx(SWA 내장 빌더) 대신 여기서 직접 빌드한다.
+      # 빌드 환경과 VITE_* 주입 시점을 우리가 통제할 수 있어서 결과가 예측 가능하다.
+      - name: Install and build
+        working-directory: fe
+        run: |
+          npm ci
+          npm run build
+
+      # ------------------------------------------------------------------
+      # SPA fallback 설정. 이 파일이 없으면 /sales/1 같은 경로를 새로고침할 때
+      # SWA 가 404 를 돌려준다.
+      #
+      # 리포지토리에 두고 싶으면 fe/public/staticwebapp.config.json 으로 옮기면 된다.
+      # (vite 가 public/ 아래를 dist/ 로 그대로 복사한다)
+      # ------------------------------------------------------------------
+      - name: Generate staticwebapp.config.json
+        run: |
+          cat > fe/dist/staticwebapp.config.json <<'CONFIG_EOF'
+          {
+            "navigationFallback": {
+              "rewrite": "/index.html",
+              "exclude": ["/assets/*", "/*.{svg,png,jpg,jpeg,gif,webp,ico,woff,woff2,json,txt}"]
+            },
+            "globalHeaders": {
+              "Cache-Control": "no-cache"
+            },
+            "routes": [
+              {
+                "route": "/assets/*",
+                "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+              }
+            ],
+            "mimeTypes": {
+              ".json": "application/json",
+              ".svg": "image/svg+xml"
+            }
+          }
+          CONFIG_EOF
+          node -e "JSON.parse(require('fs').readFileSync('fe/dist/staticwebapp.config.json','utf8'));console.log('config 유효')"
+
+      - name: Deploy to Azure Static Web Apps
+        id: swa
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}   # PR 미리보기 코멘트용
+          action: upload
+          # 이미 빌드했으므로 결과 폴더를 그대로 올린다
+          app_location: fe/dist
+          skip_app_build: true
+          skip_api_build: true
+          # API 는 별도 App Service(yangpa-be)를 쓰므로 SWA 쪽 API 는 비워둔다
+          api_location: ''
+
+  close_pull_request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Close preview environment
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: close
