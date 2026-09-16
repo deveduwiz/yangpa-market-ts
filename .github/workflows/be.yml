@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'be-azure/**'
-      - '.github/workflows/main_yangpa-be.yml'
+      - '.github/workflows/be.yml'
   workflow_dispatch:
 
 jobs:
