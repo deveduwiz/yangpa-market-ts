@@ -2,6 +2,7 @@ import { Op, WhereOptions } from 'sequelize';
 import { Favorite, Sale, User } from '../models/index.js';
 import { SaleAttributes } from '../models/sale.js';
 import { CreateSaleDto, GetSalesQuery, SaleView, httpError } from '../types/index.js';
+import { tryGetBlobUrl } from './azure-blob.service.js';
 
 interface SaleListResult {
   documents: SaleView[];
@@ -26,6 +27,7 @@ const toView = (
     price: plain.price,
     email: plain.email,
     photo: plain.photo,
+    photoUrl: tryGetBlobUrl(plain.photo),
     createdAt: plain.createdAt as Date,
     updatedAt: plain.updatedAt as Date,
     sellerName: plain.User?.name ?? null,

@@ -85,7 +85,7 @@ export default function Favorites() {
             <li key={sale.id} className="tile-wrap">
               <Link to={`/sales/${sale.id}`} className="tile">
                 <img
-                  src={imageUrl(sale.photo)}
+                  src={imageUrl(sale)}
                   alt={sale.productName}
                   className="tile__img"
                   loading="lazy"

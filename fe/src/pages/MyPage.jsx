@@ -104,7 +104,7 @@ export default function MyPage() {
             <li key={sale.id} className="row-wrap">
               <Link to={`/sales/${sale.id}`} className="row">
                 <img
-                  src={imageUrl(sale.photo)}
+                  src={imageUrl(sale)}
                   alt={sale.productName}
                   className="row__img"
                   loading="lazy"

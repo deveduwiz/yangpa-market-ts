@@ -121,5 +121,16 @@ export const api = {
     }),
 };
 
-export const imageUrl = (filename) =>
-  filename ? apiUrl(`/image/${encodeURIComponent(filename)}`) : '';
+// 이미지는 Azure Blob Storage 에서 브라우저가 직접 받는다.
+// be 가 내려주는 sale.photoUrl 이 blob 공개 URL이고, be 를 거치지 않으므로
+// App Service 대역폭을 쓰지 않고 지연도 짧다.
+//
+// photoUrl 이 없으면(스토리지 설정 누락 등) be 경유 /image/:filename 으로 폴백한다.
+export const imageUrl = (sale) => {
+  if (!sale) return '';
+  // 파일명 문자열로 넘어오던 예전 호출도 계속 동작하게 둔다
+  if (typeof sale === 'string') return apiUrl(`/image/${encodeURIComponent(sale)}`);
+  if (sale.photoUrl) return sale.photoUrl;
+  if (sale.photo) return apiUrl(`/image/${encodeURIComponent(sale.photo)}`);
+  return '';
+};

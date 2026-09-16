@@ -196,7 +196,7 @@ export default function SaleList() {
             <li key={sale.id} className="tile-wrap">
               <Link to={`/sales/${sale.id}`} className="tile">
                 <img
-                  src={imageUrl(sale.photo)}
+                  src={imageUrl(sale)}
                   alt={sale.productName}
                   className="tile__img"
                   loading="lazy"
@@ -231,7 +231,7 @@ export default function SaleList() {
             <li key={sale.id} className="row-wrap">
               <Link to={`/sales/${sale.id}`} className="row">
                 <img
-                  src={imageUrl(sale.photo)}
+                  src={imageUrl(sale)}
                   alt={sale.productName}
                   className="row__img"
                   loading="lazy"

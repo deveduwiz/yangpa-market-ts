@@ -79,7 +79,7 @@ export default function SaleDetail() {
 
       <article className="detail">
         <img
-          src={imageUrl(sale.photo)}
+          src={imageUrl(sale)}
           alt={sale.productName}
           className="detail__img"
         />
