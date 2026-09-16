@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - paths:
+    paths:
       - 'be-azure/**'
       - '.github/workflows/main_yangpa-be.yml'
   workflow_dispatch:
