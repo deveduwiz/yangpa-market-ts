@@ -5,7 +5,7 @@
 // 끝의 / 는 제거해서 `${BASE}/sales` 처럼 항상 한 번만 붙게 한다.
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/+$/, '');
 const apiUrl = (path) => `${API_BASE}${path}`;
-console.log(apiUrl);
+console.log('============', apiUrl);
 const TOKEN_KEY = 'yangpa.token';
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
